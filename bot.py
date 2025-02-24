@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import openai
 import os
+import lmstudio
+import ollama
 
 # Initialize the bot
 intents = discord.Intents.default()
@@ -13,12 +15,31 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # Set up OpenAI GPT-J
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Set up LM Studio
+lmstudio.api_key = os.getenv("LMSTUDIO_API_KEY")
+
+# Set up ollama/highvibes
+ollama.api_key = os.getenv("OLLAMA_API_KEY")
+
 async def generate_response(prompt):
-    response = openai.Completion.create(
-        engine="davinci-codex",
-        prompt=prompt,
-        max_tokens=150
-    )
+    if os.getenv("USE_LMSTUDIO"):
+        response = lmstudio.Completion.create(
+            engine="lmstudio-engine",
+            prompt=prompt,
+            max_tokens=150
+        )
+    elif os.getenv("USE_OLLAMA"):
+        response = ollama.Completion.create(
+            engine="ollama-engine",
+            prompt=prompt,
+            max_tokens=150
+        )
+    else:
+        response = openai.Completion.create(
+            engine="davinci-codex",
+            prompt=prompt,
+            max_tokens=150
+        )
     return response.choices[0].text.strip()
 
 # Define bot commands
